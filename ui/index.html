@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Страница сделана специально для тех, кто идет бухать</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width">
+
+        <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
+        <link rel="stylesheet" href="css/font-awesome.min.css">
+        <link rel="stylesheet" href="css/main.css">
+        <script src="js/vendor/modernizr-2.6.2.min.js"></script>
+    </head>
+    <body>
+        <!--[if lt IE 7]>
+            <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
+        <![endif]-->
+        <?php $admin = ($user and $user->is_admin); ?>
+        <?php if(!$user) : ?>
+            <div class="modal hide fade" id="login">
+                <div class="modal-header">
+                    <button class="close" data-dismiss="modal">&times;</button>
+                    <h3>Входи, товарищ.</h3>
+                </div>
+                <div class="modal-body">
+                    <form class="form-inline" action="/login" id="loginform" method="post">
+                        <div class="alert alert-error hide">Ай-яй-яй! Пароль неверный. Расстрелять! <a class="close" href="#">&times;</a></div>
+                        <div class="input-prepend">
+                            <span class="add-on">+7</span>
+                            <input type="text" class="input-small" name="phone" placeholder="Телефон">
+                        </div>
+                        <input type="password" class="input-small" name="pass" placeholder="Пароль">
+                        <button class="btn">Бухать!</button>
+                    </form>
+                </div>
+            </div>
+        <?php endif; ?>
+        <div class="timurotron">
+            <div class="container">
+                <div class="hero-unit zavlekalovo">
+                    <div class="row">
+                        <div class="span5">
+                            <h1>Выпускной 11В</h1>
+                            <p>Определяемся с тем, кто бухает, где, когда и почем.</p>
+                            <?php if(!$user) : ?>
+                                <p>
+                                    <a href="#login" class="btn btn-primary btn-large" data-toggle="modal">Войти внутрь</a>
+                                </p>
+                            <?php endif; ?>
+                        </div>
+                        <div class="span5">
+                            <?php if($user) : ?>
+                                <div class="well">
+                                    <strong>
+                                        <?= greeting($user->name) ?>
+                                    </strong>
+                                    <p><i class="icon-phone"></i> +7<?= $user->phone ?></p>
+                                    <p>
+                                        <button class="btn btn-danger" id="logout"><i class="icon-remove"></i> Выйти вон</button>
+                                    </p>
+                                    <?php if($admin) : ?>
+                                    <div class="btn-group">
+                                        <button id="passgen" class="btn btn-danger">Загенерить пассы</button>
+                                        <button id="remind" class="btn btn-warning">Напомнить всем о бабле</button>
+                                    </div>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="page-header">
+                <h1>Список бухающих (или не очень) людей:</h1>
+            </div>
+            <table class="table table-hover">
+                <thead>
+                    <th title="Есть вопросы?">Имя</th>
+                    <th title="Если собираешься идти, отметь это галочкой, и мы всегда тебе напомним о том, что нужно сдать бабло :3">Я иду в коттедж</th>
+                    <th title="А вот это уже решит админ - сдал(а) ты или не сдал(а)">Я сдал(а) бабло</th>
+                    <th title="Это, собсно, тоже решает админ">Сколько бабла я сдал(а):</th>
+                </thead>
+                <tbody>
+                    <?php 
+                        $total_got = 0;
+                        $people = new DB\SQL\Mapper($db, 'people');
+                        $people->load(array(), array(
+                            'order' => 'name ASC',
+                        ));
+                        while(!$people->dry()) : ?>
+                        <tr>
+                            <td><?= $people->name ?></td>
+                            <td><input
+                                type="checkbox" 
+                                data-phone="<?= $people->phone ?>" 
+                                class="is-going" 
+                                value="true"
+                                <?= $people->is_going ? 'checked': ''; ?>
+                                <?= ( ($user && ($user->phone === $people->phone) ) or $admin) ? '': 'disabled'; ?> />
+                            </td>
+                            <td>
+                                <input
+                                type="checkbox"
+                                value="true"
+                                <?= $people->paid > 0 ? 'checked': ''; ?>
+                                <?= $admin ? '' : 'disabled' ?> /></td>
+                            <td>
+                                <?php if($admin) : ?>
+                                    <input type="number" class="input-small how-paid" data-phone="<?= $people->phone; ?>" value="<?= $people->paid ?>"> руб.
+                                <?php else: echo $people->paid.' руб.'; endif; ?>
+                            </td>
+                        </tr>
+                    <?php $total_got += $people->paid; $people->next(); endwhile; ?>
+                    <?php if($admin) : ?>
+                        <form action="/addpeople" method="post">
+                            <tr>
+                                <td><input type="text" name="name" placeholder="Имя"></td>
+                                <td><input type="text" name="phone" placeholder="Телефон"></td>
+                                <td><input type="text" name="pass" placeholder="Пароль"></td>
+                                <td><button class="btn">Добавить человечка</button></td>
+                            </tr>
+                        </form>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+            <div class="page-header">
+                <h1>На что тратим бабосики:</h1>
+            </div>
+            <ul class="media-list">
+                <?php
+                    $total_need = 0;
+                    $goods = new DB\SQL\Mapper($db, 'goods');
+                    $goods->load();
+                    while(!$goods->dry()) : ?>
+                    <li class="media">
+                        <span class="pull-left"><img class="media-object" src="<?= $goods->img ?>" alt=""></span>
+                        <div class="media-body">
+                            <h3 class="media-heading"><?= $goods->name ?>&nbsp;&nbsp; <strong class="price"><i class="icon-money"></i> <?= $goods->price; ?> руб.</strong></h3>
+                            <p><?= $goods->desc; ?></p>
+                            <?php if($admin) : ?>
+                                <div class="alert alert-info actions">
+                                    <a href="#" data-id="<?= $goods->id ?>" class="btn btn-link remove-good">Удалить <i class="icon-remove"></i></a>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </li>
+                <?php $total_need += $goods->price; $goods->next(); endwhile; ?>
+            </ul>
+            <?php if($admin): ?>
+                <form id="goodadd" action="/addgood" method="post">
+                    <strong>Добавить добра:</strong>
+                    <label>Название: <input type="text" name="name"></label>
+                    <label>Цена: <input type="number" name="price"></label>
+                    <label>Картинко: <input type="url" name="img"></label>
+                    <label for="desc">Описание:</label>
+                    <textarea name="desc" id="desc" cols="30" rows="10"></textarea>
+                    <button class="btn btn-success">Задобрить</button>
+                </form>
+            <?php endif; ?>
+            <div class="page-header">
+                <h1>Итого:</h1>
+            </div>
+            <div class="row-fluid money">
+                <div class="well span4">
+                    <h3>Собрано:</h3>
+                    <h1><?= $total_got ?> руб.</h1>
+                </div>
+                <div class="well span4">
+                    <h3>Необходимо:</h3>
+                    <h1 class="bad"><?= $total_need ?> руб.</h1>
+                </div>
+                <div class="well span4">
+                    <h3>Осталось добрать:</h3>
+                    <h1 <?= $total_need - $total_got > 0 ? 'class="bad"':''?>><?= $total_need - $total_got ?> руб.</h1>
+                </div>
+            </div>
+        </div>
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.10.1.min.js"><\/script>')</script>
+        <script src="js/bootstrap.min.js"></script>
+        <script src="js/plugins.js"></script>
+        <script src="js/main.js"></script>
+
+        <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
+        <script>
+            (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+            function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+            e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+            e.src='//www.google-analytics.com/analytics.js';
+            r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+            ga('create','UA-XXXXX-X');ga('send','pageview');
+        </script>
+    </body>
+</html>
