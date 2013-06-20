@@ -25,7 +25,7 @@ $f3->set('user', $user);
 
 // randpass
 function randomPassword() {
-    return substr(str_shuffle(str_repeat('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',5)),0,6);
+    return substr(str_shuffle(str_repeat('ABCDEFGHIJKLMOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',5)),0,6);
 }
 
 // lulz
@@ -126,6 +126,7 @@ $f3->route('POST /addpeople',
 		$man->pass = md5($f3->get('POST.pass'));
 		$man->is_going = 0;
 		$man->paid = 0;
+		$man->is_admin = 0;
 		$man->save();
 	}
 );
@@ -144,17 +145,15 @@ $f3->route('GET /passinit',
 	function($f3) {
 		$user = $f3->get('user');
 		if(!$user or !$user->is_admin) gtfo();
-		$people = new DB\SQL\Mapper($f3->get('db'), 'people');
-        $people->load(array('is_admin=?', 0));
-        $passes = [];
-        while(!$people->dry()) {
-        	$pass = randomPassword();
-        	$passes[] = $pass;
-        	$people->pass = md5($pass);
-        	$people->save();
-        	$people->next();
-        }
-        echo implode(',', $passes);
+		$guys = $f3->get('db')->exec('SELECT phone FROM people WHERE is_admin=0;');
+		foreach ($guys as $guy) {
+			$pass_orig = randomPassword();
+			$pass = md5($pass_orig);
+			$f3->get('db')->exec("UPDATE people SET pass='$pass' WHERE phone='{$guy["phone"]}';");
+			$send = send_sms('+7'.$guy['phone'], "Твой пароль от патихарда: $pass_orig. Подробности в группе 11В.");
+			echo $pass_orig."\n";
+		}
+		print_r($guys);
 	}
 );
 
