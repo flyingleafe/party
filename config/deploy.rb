@@ -38,15 +38,15 @@ default_run_options[:pty] = true
 
 # Переопределяем настройки для PHP
 
-# namespace :deploy do
-#     task :start do
-#     end
-#     task :stop do
-#     end
-#     task :restart do
-#     end
-#     task :finalize_update do
-#       run "#{try_sudo} chown -R www-data:art /srv/www/ufaenergotrend.ru"
-#       run "#{try_sudo} chmod -R 775 /srv/www/ufaenergotrend.ru"
-#     end
-#   end
+namespace :deploy do
+    task :start do
+    end
+    task :stop do
+    end
+    task :restart do
+    end
+    task :finalize_update do
+      run "chown -R :www-data /srv/www/party"
+      run "chmod -R 775 /srv/www/party"
+    end
+  end
