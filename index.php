@@ -151,9 +151,19 @@ $f3->route('GET /passinit',
 			$pass = md5($pass_orig);
 			$f3->get('db')->exec("UPDATE people SET pass='$pass' WHERE phone='{$guy["phone"]}';");
 			$send = send_sms('+7'.$guy['phone'], "Твой пароль от патихарда: $pass_orig. Подробности в группе 11В.");
-			echo $pass_orig."\n";
 		}
-		print_r($guys);
+	}
+);
+
+$f3->route('GET /payremind',
+	function($f3) {
+		$user = $f3->get('user');
+		if(!$user or !$user->is_admin) gtfo();
+		$debters = $f3->get('db')->exec('SELECT phone, name FROM people WHERE is_going=1 AND paid=0;');
+		foreach($debters as $d) {
+			$send = send_sms('+7'.$d['phone'], "{$d['name']}, сдай 1000 р на патихард 25го Мухутдинову или Латыпову");
+		}
+		print_r($debters);
 	}
 );
 

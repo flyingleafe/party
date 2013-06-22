@@ -53,4 +53,9 @@ $(function() {
             console.log(res);
         });
     });
+    $('#remind').click(function(e) {
+       $.get('/payremind', function(res) {
+            console.log(res);
+        });
+    });
 });
