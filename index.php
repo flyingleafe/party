@@ -7,7 +7,7 @@ require 'smsc_api.php';
 $f3->config('config.ini');
 
 // db
-$db = new DB\SQL('sqlite:./db.sqlite');
+$db = new DB\SQL('sqlite:../party.sqlite');
 $f3->set('db', $db);
 
 // user hop
