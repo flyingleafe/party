@@ -165,10 +165,10 @@ $f3->route('GET /payremind',
 			if(!$user or !$user->is_admin) gtfo();
 		}
 		$debters = $f3->get('db')->exec('SELECT phone, name FROM people WHERE is_going=1 AND paid=0;');
-		// foreach($debters as $d) {
-		// 	$fname = substr($d['name'], strpos($d['name'], ' '));
-		// 	$send = send_sms('+7'.$d['phone'], "{$d['name']}, сдай 1000 р на патихард 25го Мухутдинову или Латыпову");
-		// }
+		foreach($debters as $d) {
+			$fname = substr($d['name'], strpos($d['name'], ' '));
+			$send = send_sms('+7'.$d['phone'], "{$d['name']}, сдай 1000 р на патихард 25го Мухутдинову или Латыпову");
+		}
 		print_r($debters);
 	}
 );
