@@ -6,6 +6,9 @@ require 'smsc_api.php';
 
 $f3->config('config.ini');
 
+// TOP SECRET CURL TOKEN FOR AUTOREMIND!
+$f3->set('curl_secret', "DYdpQKqqewyfwQkg");
+
 // db
 $db = new DB\SQL('sqlite:../party.sqlite');
 $f3->set('db', $db);
@@ -157,13 +160,15 @@ $f3->route('GET /passinit',
 
 $f3->route('GET /payremind',
 	function($f3) {
-		$user = $f3->get('user');
-		if(!$user or !$user->is_admin) gtfo();
-		$debters = $f3->get('db')->exec('SELECT phone, name FROM people WHERE is_going=1 AND paid=0;');
-		foreach($debters as $d) {
-			$fname = substr($d['name'], strpos($d['name'], ' '));
-			$send = send_sms('+7'.$d['phone'], "{$d['name']}, сдай 1000 р на патихард 25го Мухутдинову или Латыпову");
+		if( !$f3->get('GET.token') or ( $f3->get('GET.token') !== $f3->get('curl_secret') ) ) {
+			$user = $f3->get('user');
+			if(!$user or !$user->is_admin) gtfo();
 		}
+		$debters = $f3->get('db')->exec('SELECT phone, name FROM people WHERE is_going=1 AND paid=0;');
+		// foreach($debters as $d) {
+		// 	$fname = substr($d['name'], strpos($d['name'], ' '));
+		// 	$send = send_sms('+7'.$d['phone'], "{$d['name']}, сдай 1000 р на патихард 25го Мухутдинову или Латыпову");
+		// }
 		print_r($debters);
 	}
 );
